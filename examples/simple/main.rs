@@ -1,5 +1,5 @@
 use eframe::{Frame, NativeOptions};
-use egui::Context;
+use egui::Ui;
 
 use egui_memory_editor::MemoryEditor;
 
@@ -47,20 +47,20 @@ impl Default for App {
 }
 
 impl eframe::App for App {
-    fn update(&mut self, ctx: &Context, frame: &mut Frame) {
-        create_frame_history(ctx, frame, &mut self.fh);
+    fn ui(&mut self, ui: &mut Ui, frame: &mut Frame) {
+        create_frame_history(ui, frame, &mut self.fh);
 
         // This will automatically check for `mem_editor.options.is_open`, so no need to do that here.
         // The write function is optional, if you don't set it the UI will be in read-only mode.
         self.mem_editor.window_ui(
-            ctx,
+            ui,
             &mut self.is_open,
             &mut self.memory,
             |mem, address| mem.read_value(address).into(),
             |mem, address, val| mem.write_value(address, val),
         );
         // If your memory changes between frames you'll need to re-render at whatever framerate you want.
-        ctx.request_repaint();
+        ui.request_repaint();
     }
 }
 
@@ -86,9 +86,9 @@ impl Memory {
     }
 }
 
-fn create_frame_history(ctx: &Context, frame: &Frame, frame_history: &mut FrameHistory) {
-    frame_history.on_new_frame(ctx.input(|i| i.time), frame.info().cpu_usage);
-    egui::SidePanel::left("SidePanel").show(ctx, |ui| {
+fn create_frame_history(ui: &mut Ui, frame: &Frame, frame_history: &mut FrameHistory) {
+    frame_history.on_new_frame(ui.input(|i| i.time), frame.info().cpu_usage);
+    egui::Panel::left("SidePanel").show(ui, |ui| {
         frame_history.ui(ui);
     });
 }
